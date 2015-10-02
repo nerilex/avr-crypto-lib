@@ -63,6 +63,7 @@
 .endif
 .endm
 
+/* !warning the pointer will point one below the allocated area! */
 .macro stack_alloc size:req, reg1=r30, reg2=r31
 	in r0, _SFR_IO_ADDR(SREG)
 	in \reg1, _SFR_IO_ADDR(SPL)
