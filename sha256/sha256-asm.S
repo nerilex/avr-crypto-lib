@@ -924,7 +924,7 @@ sha256_init:
 	movw r26, r24 ; (24,25) --> (26,27) load X with param1
 	ldi r30, lo8((sha256_init_vector))
 	ldi r31, hi8((sha256_init_vector))
-	ldi r22, 32+8
+	ldi r22, 32 + 4
 sha256_init_vloop:
 	lpm r23, Z+
 	st X+, r23
@@ -941,7 +941,6 @@ sha256_init_vector:
 .word 0x688C, 0x9B05
 .word 0xD9AB, 0x1F83
 .word 0xCD19, 0x5BE0
-.word 0x0000, 0x0000
 .word 0x0000, 0x0000
 
 ;###########################################################
