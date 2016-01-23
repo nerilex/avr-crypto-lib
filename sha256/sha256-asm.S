@@ -352,14 +352,12 @@ sha256_lastBlock_insert_stuffing_bit:
 
 	/* now we should subtract 512 from length */
 	movw r26, r24
-	adiw r26, 4*8+1 /* we can skip the lowest byte */
-	ld r19, X
-	subi r19, hi8(512)
-	st X+, r19
-	ldi r18, 6
+	adiw r26, 4*8 /* we can skip the lowest byte */
+	sec
+	ldi r18, 4
 1:
 	ld r19, X
-	sbci r19, 0
+	sbc r19, r1
 	st X+, r19
 	dec r18
 	brne 1b
@@ -382,21 +380,24 @@ sha256_lastBlock_insert_length:
 	movw r26, r24	/* X points to state */
 	adiw r26, 8*4	/* X points to (state.length) */
 	adiw r30, 8		/* Z points one after the last byte of block */
+	ldi r19, 3
+	st -Z, r20
 	ld r0, X+
-	add r0, r20
+	lsl r0
+	or r0, r21
 	st -Z, r0
-	ld r0, X+
-	adc r0, r21
-	st -Z, r0
-	ldi r19, 6
 1:
 	ld r0, X+
-	adc r0, r1
+	rol r0
 	st -Z, r0
 	dec r19
 	brne 1b
-
-	sbiw r30, 64-8
+	clr r0
+	rol r0
+	st -Z, r0
+	st -Z, r1
+	st -Z, r1
+	sbiw r30, 64 - 8
 	movw r22, r30
 	rcall sha256_nextBlock
 
@@ -851,20 +852,15 @@ update_state_loop:
 	dec r21
 	brne update_state_loop
 	/* now we just have to update the length */
-	adiw r30, 1 /* since we add 512, we can simply skip the LSB */
-	ldi r21, 2
-	ldi r22, 6
-	ld r20, Z
-	add r20, r21
-	st Z+, r20
-	clr r21
-sha256_nextBlock_fix_length:
-	brcc sha256_nextBlock_epilog
-	ld r20, Z
-	adc r20, r21
-	st Z+, r20
-	dec r22
-	brne sha256_nextBlock_fix_length
+	clr r1
+	ldi r21, 4
+	sec
+1:
+	ld r22, Z
+	adc r22, r1
+	st Z+, r22
+	dec r21
+	brne 1b
 
 ; EPILOG
 sha256_nextBlock_epilog:
@@ -877,7 +873,6 @@ sha256_nextBlock_epilog:
 	out SPL, r20
 	out SREG, r0
 	out SPH, r21
-	clr r1
 	pop r29
 	pop r28
 	pop r17
